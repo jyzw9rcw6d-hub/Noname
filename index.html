@@ -779,9 +779,11 @@ function generate() {
             <span class="badge badge-${getDifficultyBadge(engine.d)}">${engine.d}</span>
         `;
         
-        document.getElementById('q-area').innerHTML = problem.q;
-        document.getElementById('hint-body').innerHTML = problem.h;
-        document.getElementById('ans-body').innerHTML = problem.a;
+        document.getElementById('q-area').innerHTML = "$$" + problem.q + "$$";
+document.getElementById('hint-body').innerHTML = "$$" + problem.h + "$$";
+document.getElementById('ans-body').innerHTML = "$$" + problem.a + "$$";
+
+MathJax.typeset();
         
         document.getElementById('hint').style.display = 'none';
         document.getElementById('ans').style.display = 'none';
