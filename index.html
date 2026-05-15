@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>MATH ENGINE — Ultimate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #080A0F;
+      --card: #0D1018;
+      --border: rgba(255,255,255,0.07);
+      --border-bright: rgba(255,255,255,0.15);
+      --text: #C8CDD8;
+      --text-dim: rgba(255,255,255,0.28);
+      --accent: #00D4FF;
+      --accent-glow: rgba(0,212,255,0.35);
+      --green: #00FF8C;
+      --green-dim: rgba(0,255,140,0.12);
+      --green-border: rgba(0,255,140,0.3);
+      --yellow: #FFB800;
+      --red: #FF4444;
+      --purple: #BF5FFF;
+      --mono: 'Space Mono', monospace;
+      --display: 'Syne', sans-serif;
+      --jp: 'Noto Sans JP', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--jp);
+      min-height: 100vh;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 55% 35% at 15% 5%, rgba(0,212,255,0.07) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 30% at 85% 85%, rgba(191,95,255,0.07) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      margin-bottom: 2.5rem;
+    }
+
+    .header-eye {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      opacity: 0.75;
+    }
+
+    .header-title {
+      font-family: var(--display);
+      font-size: clamp(38px, 10vw, 64px);
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .header-title span {
+      display: block;
+      background: linear-gradient(100deg, var(--accent) 0%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-rule {
+      margin-top: 1.25rem;
+      height: 1px;
+      width: 48px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.75rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .card + .card { margin-top: 10px; }
+
+    /* top shimmer line */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+      opacity: 0.5;
+    }
+
+    /* ── META ROW ── */
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      padding: 3px 10px;
+      border-radius: 3px;
+      border: 1px solid;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge-field {
+      color: var(--accent);
+      border-color: rgba(0,212,255,0.35);
+      background: rgba(0,212,255,0.07);
+    }
+
+    .badge-hard {
+      color: var(--red);
+      border-color: rgba(255,68,68,0.35);
+      background: rgba(255,68,68,0.07);
+    }
+
+    .badge-mid {
+      color: var(--yellow);
+      border-color: rgba(255,184,0,0.35);
+      background: rgba(255,184,0,0.07);
+    }
+
+    .counter {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
+    /* ── SECTION LABEL ── */
+    .sec-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* ── QUESTION ── */
+    .q-area {
+      min-height: 100px;
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: #EEF0F5;
+      font-weight: 300;
+    }
+
+    /* KaTeX override */
+    .katex-display {
+      margin: 1em 0 !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 6px 0;
+    }
+
+    .katex { font-size: 1.08em !important; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0;
+    }
+
+    /* ── PANEL (hint / answer) ── */
+    .panel {
+      display: none;
+      font-size: 0.9rem;
+      line-height: 1.75;
+      animation: fadeUp 0.25s ease;
+    }
+
+    .panel-hint {
+      padding: 14px 16px;
+      border-radius: 6px;
+      background: rgba(0,212,255,0.05);
+      border: 1px solid rgba(0,212,255,0.18);
+      color: rgba(0,212,255,0.85);
+      margin-top: 1rem;
+    }
+
+    .panel-ans {
+      padding: 14px 16px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-bright);
+      color: var(--text);
+      margin-top: 1rem;
+    }
+
+    .panel-title {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      opacity: 0.6;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── BUTTONS ── */
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 1.75rem;
+    }
+
+    .btn {
+      padding: 11px 16px;
+      border-radius: 5px;
+      border: 1px solid var(--border-bright);
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.9);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-gen {
+      grid-column: span 2;
+      background: var(--accent);
+      color: #080A0F;
+      border: none;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 14px;
+      letter-spacing: 0.2em;
+      transition: all 0.2s;
+    }
+
+    .btn-gen:hover {
+      filter: brightness(1.12);
+      box-shadow: 0 0 28px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-gen:active { transform: translateY(0); }
+
+    /* ── STATS ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: var(--mono);
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+
+    .stat-lbl {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* ── LOADER ── */
+    .loader {
+      display: none;
+      gap: 5px;
+      align-items: flex-end;
+      height: 32px;
+      padding: 4px 0;
+    }
+
+    .loader.active { display: flex; }
+
+    .loader-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--accent);
+      animation: barAnim 1s ease-in-out infinite;
+    }
+
+    .loader-bar:nth-child(1) { height: 60%; animation-delay: 0s; }
+    .loader-bar:nth-child(2) { height: 100%; animation-delay: 0.1s; }
+    .loader-bar:nth-child(3) { height: 45%; animation-delay: 0.2s; }
+    .loader-bar:nth-child(4) { height: 80%; animation-delay: 0.3s; }
+    .loader-bar:nth-child(5) { height: 35%; animation-delay: 0.4s; }
+
+    @keyframes barAnim {
+      0%, 100% { opacity: 0.25; transform: scaleY(0.7); }
+      50%       { opacity: 1;    transform: scaleY(1); }
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-eye">// AI-Free · 1000+ Problems · All Levels</div>
+    <h1 class="header-title">MATH<span>ENGINE</span></h1>
+    <div class="header-rule"></div>
+  </header>
+
+  <!-- MAIN CARD -->
+  <div class="card">
+    <div class="meta">
+      <div class="badges" id="tags"></div>
+      <div class="counter" id="counter">Q — 000</div>
+    </div>
+
+    <div class="sec-label">問題</div>
+
+    <div class="loader" id="loader">
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+      <div class="loader-bar"></div>
+    </div>
+
+    <div class="q-area" id="q-area"></div>
+
+    <div class="btn-grid">
+      <button class="btn btn-gen" onclick="generate()">GENERATE &nbsp;→</button>
+      <button class="btn" onclick="toggle('hint')">HINT</button>
+      <button class="btn" onclick="toggle('ans')">ANSWER</button>
+    </div>
+
+    <div class="panel panel-hint" id="hint">
+      <div class="panel-title">// Hint</div>
+      <div id="hint-body"></div>
+    </div>
+
+    <div class="panel panel-ans" id="ans">
+      <div class="panel-title">// 解答・解説</div>
+      <div id="ans-body"></div>
+    </div>
+  </div>
+
+  <!-- STATS CARD -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" id="s-total" style="color:var(--accent)">0</div>
+      <div class="stat-lbl">Total</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="s-hard">0</div>
+      <div class="stat-lbl">Hard</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="s-streak" style="color:var(--green)">0</div>
+      <div class="stat-lbl">Streak</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+const engines = [
+    { f: "数I:因数分解", d: "旧帝大", gen: () => ({
+        q: "x^4 + 4y^4 \\text{ を因数分解せよ。}",
+        h: "複2次式の典型です。$(x^2+2y^2)^2$ を作ってから引いて差の積にします。",
+        a: "(x^2+2xy+2y^2)(x^2-2xy+2y^2)"
+    })},
+    { f: "数I:2次関数", d: "医学部級", gen: () => {
+        let a = rand(1, 4);
+        return {
+            q: `f(x) = x^2 - 2ax + a + ${a*2} = 0 \\text{ が } 1 < x < 3 \\text{ の範囲に異なる2つの実数解をもつ定数 } a \\text{ の範囲を求めよ。}`,
+            h: "D > 0, \\text{ 軸の位置, } f(1) > 0, f(3) > 0 \\text{ の4条件を連立します。}",
+            a: `D/4 = a^2 - a - ${a*2} > 0 \\text{ 等を計算して共通範囲を出します。}`
+        };
+    }},
+    { f: "数A:整数", d: "医学部級", gen: () => ({
+        q: "17x + 13y = 1 \\text{ を満たす整数 } (x, y) \\text{ の組を1つ求めよ。}",
+        h: "ユークリッドの互除法を逆順に辿ります。",
+        a: "x = -3, y = 4 \\text{ など。}"
+    })},
+    { f: "数II:軌跡", d: "旧帝大", gen: () => ({
+        q: "\\text{点 } A(2, 0) \\text{ と円 } x^2 + y^2 = 1 \\text{ 上の動点 } P \\text{ に対し、線分 } AP \\text{ を } 1:2 \\text{ に内分する点 } Q \\text{ の軌跡を求めよ。}",
+        h: "P(s, t), Q(x, y) \\text{ とおき、} s, t \\text{ を } x, y \\text{ で表して円の式に代入。}",
+        a: "\\left(x - \\frac{4}{3}\\right)^2 + y^2 = \\frac{1}{9}"
+    })},
+    { f: "数II:三角関数", d: "難関大", gen: () => ({
+        q: "0 \\leqq \\theta < 2\\pi \\text{ のとき、} \\sin 2\\theta + \\cos \\theta = 0 \\text{ を解け。}",
+        h: "2倍角の公式で \\cos \\theta \\text{ でくくります。}",
+        a: "\\theta = \\frac{\\pi}{2},\\ \\frac{7\\pi}{6},\\ \\frac{3\\pi}{2},\\ \\frac{11\\pi}{6}"
+    })},
+    { f: "数II:微分積分", d: "医学部級", gen: () => ({
+        q: "f(x) = x^3 - 3ax^2 + 4a^3 \\text{ が極大値 } 32 \\text{ をもつとき、定数 } a \\text{ の値を求めよ。}",
+        h: "f'(x)=0 \\text{ となる } x \\text{ を求め、増減表から極大値を } a \\text{ で表します。}",
+        a: "a = 2"
+    })},
+    { f: "数B:漸化式", d: "旧帝大", gen: () => ({
+        q: "a_1 = 1,\\ a_{n+1} = 3a_n + 2^n \\text{ の一般項 } a_n \\text{ を求めよ。}",
+        h: "両辺を 3^{n+1} \\text{ で割るか、} a_{n+1} + k \\cdot 2^{n+1} = 3(a_n + k \\cdot 2^n) \\text{ と変形。}",
+        a: "a_n = 2 \\cdot 3^{n-1} - 2^{n-1}"
+    })},
+    { f: "数B:統計", d: "共通テスト", gen: () => ({
+        q: "\\text{信頼度 95\\% の信頼区間の幅を半分にするには、サンプルサイズ } n \\text{ を何倍にすればよいか。}",
+        h: "\\text{信頼区間の幅は } \\frac{1}{\\sqrt{n}} \\text{ に比例します。}",
+        a: "4\\text{ 倍}"
+    })},
+    { f: "数II:指数対数", d: "標準", gen: () => ({
+        q: "\\log_2 x + \\log_2 (x-2) = 3 \\text{ を解け。}",
+        h: "\\text{真数条件 } x > 2 \\text{ を確認後、} x(x-2) = 2^3 \\text{ を解きます。}",
+        a: "x = 4"
+    })},
+    { f: "数A:確率", d: "難関大", gen: () => ({
+        q: "\\text{赤玉3個、白玉5個が入った袋から、戻さずに1個ずつ2回取り出すとき、2回目が赤である確率を求めよ。}",
+        h: "\\text{「1回目赤、2回目赤」と「1回目白、2回目赤」の和事象です。}",
+        a: "\\frac{3}{8}"
+    })},
+    { f:"数II:微積分", d:"旧帝大", gen:()=>({
+        q:"f(x)=x^3-3x+a \\text{ が異なる3つの実数解をもつような } a \\text{ の範囲を求めよ。}",
+        h:"極大値と極小値を使う。",
+        a:"-2<a<2"
+    })},
+    { f:"数II:三角関数", d:"難関国立", gen:()=>({
+        q:"\\sin x+\\sin 2x+\\sin 3x=0 \\quad (0\\le x<2\\pi)",
+        h:"和積公式。",
+        a:"x=0,\\pi,\\frac{2\\pi}{3},\\frac{4\\pi}{3}"
+    })},
+    { f:"数B:数列", d:"旧帝大", gen:()=>({
+        q:"a_1=1,\\ a_{n+1}=2a_n+3 \\text{ の一般項を求めよ。}",
+        h:"定数項を消す。",
+        a:"a_n=2^{n+1}-3"
+    })},
+    { f:"数B:数列", d:"私立医", gen:()=>({
+        q:"\\displaystyle\\sum_{k=1}^{n}k\\cdot 2^k \\text{ を求めよ。}",
+        h:"S,2S を作ってずらす。",
+        a:"(n-1)2^{n+1}+2"
+    })},
+    { f:"数II:指数対数", d:"旧帝大", gen:()=>({
+        q:"2^x+2^{-x}=\\dfrac{5}{2} \\text{ を解け。}",
+        h:"t=2^x",
+        a:"x=2,\\ x=-2"
+    })},
+    { f:"数II:図形と方程式", d:"難関大", gen:()=>({
+        q:"円\\ x^2+y^2-4x+6y-3=0\\ の中心と半径を求めよ。",
+        h:"平方完成。",
+        a:"\\text{中心}(2,-3),\\ \\text{半径}4"
+    })},
+    { f:"数A:確率", d:"旧帝大", gen:()=>({
+        q:"サイコロを3回投げるとき、出る目の最大値が4である確率。",
+        h:"『4以下』−『3以下』",
+        a:"\\dfrac{37}{216}"
+    })},
+    { f:"数A:整数", d:"難関国立", gen:()=>({
+        q:"n^2+n+1 \\text{ が偶数にならないことを示せ。}",
+        h:"偶奇で場合分け。",
+        a:"\\text{常に奇数。}"
+    })},
+    { f:"数II:微積分", d:"私立医", gen:()=>({
+        q:"y=x^3-6x^2+9x+1 \\text{ の極値を求めよ。}",
+        h:"微分して増減表。",
+        a:"\\text{極大値}5,\\ \\text{極小値}1"
+    })},
+    { f:"数I:二次関数", d:"旧帝大", gen:()=>({
+        q:"x^2-2(a+1)x+a^2-1=0\\ \\text{が異なる2実根をもち、その2解がともに正であるような}\\ a\\ \\text{の範囲を求めよ。}",
+        h:"判別式、解の和、解の積。",
+        a:"a>1"
+    })},
+    { f:"数II:三角関数", d:"私立医", gen:()=>({
+        q:"\\cos x+\\cos 2x=0 \\quad (0\\le x<2\\pi)",
+        h:"2\\cos^2x-1 を使う。",
+        a:"x=\\dfrac{\\pi}{3},\\pi,\\dfrac{5\\pi}{3}"
+    })},
+    { f:"数B:ベクトル", d:"旧帝大", gen:()=>({
+        q:"\\vec{a}=(1,2),\\ \\vec{b}=(3,-1) \\text{ のとき } \\vec{a}\\cdot\\vec{b} \\text{ を求めよ。}",
+        h:"内積公式。",
+        a:"1"
+    })},
+    { f:"数II:指数対数", d:"難関大", gen:()=>({
+        q:"\\log_2(x+1)+\\log_2(x-3)=3",
+        h:"真数条件。",
+        a:"x=5"
+    })},
+    { f:"数I:図形と計量", d:"旧帝大", gen:()=>({
+        q:"\\triangle ABC\\text{ で }a=7,b=5,C=60^\\circ\\text{ のとき }c\\text{ を求めよ。}",
+        h:"余弦定理。",
+        a:"c=\\sqrt{39}"
+    })},
+    { f:"1対1:微積", d:"1対1対応", gen:()=>({
+        q:"f(x)=x^3-3x^2+3x+1 \\text{ の増減を調べ、極値を求めよ。}",
+        h:"まず微分。",
+        a:"f'(x)=3(x-1)^2\\ge0\\ \\text{より単調増加。極値なし。}"
+    })},
+    { f:"1対1:整数", d:"難関大", gen:()=>({
+        q:"n^3-n \\text{ が6の倍数であることを示せ。}",
+        h:"因数分解。",
+        a:"n(n-1)(n+1)\\text{ は連続3整数。}"
+    })},
+    { f:"東大京大:数列", d:"東大レベル", gen:()=>({
+        q:"a_1=1,\\ a_{n+1}=a_n+2n+1\\text{ の一般項。}",
+        h:"階差を見る。",
+        a:"a_n=n^2"
+    })},
+    { f:"東大京大:整数", d:"京大レベル", gen:()=>({
+        q:"\\text{素数 }p>3\\text{ に対して }p^2-1\\text{ が24の倍数であることを示せ。}",
+        h:"(p-1)(p+1)",
+        a:"\\text{連続偶数3つを利用。}"
+    })},
+    { f:"医学部:積分", d:"私立医", gen:()=>({
+        q:"\\displaystyle\\int_0^1 (3x^2+2x+1)\\,dx",
+        h:"項別積分。",
+        a:"3"
+    })},
+    { f:"医学部:軌跡", d:"医学部", gen:()=>({
+        q:"\\text{点Pが }x^2+y^2=4\\text{ 上を動くとき、}Q(2x,-y)\\text{ の軌跡。}",
+        h:"x,y を消去。",
+        a:"\\dfrac{x^2}{16}+\\dfrac{y^2}{4}=1"
+    })},
+    { f:"証明:不等式", d:"旧帝大", gen:()=>({
+        q:"a,b>0\\text{ のとき }a+b\\ge 2\\sqrt{ab}\\text{ を示せ。}",
+        h:"平方完成。",
+        a:"(\\sqrt{a}-\\sqrt{b})^2\\ge0"
+    })},
+    { f:"数オリ風", d:"IMO風", gen:()=>({
+        q:"\\text{整数 }n\\text{ に対して }n^5-n\\text{ が5の倍数であることを示せ。}",
+        h:"因数分解。",
+        a:"n(n^4-1)=n(n^2-1)(n^2+1)"
+    })},
+    { f:"数オリ風", d:"IMO風", gen:()=>({
+        q:"\\text{奇数の平方を8で割った余りは1であることを示せ。}",
+        h:"2k+1 とおく。",
+        a:"(2k+1)^2=4k(k+1)+1"
+    })},
+    { f:"漸化式", d:"難関大", gen:()=>({
+        q:"a_1=1,\\ a_{n+1}=2a_n+1\\text{ の一般項。}",
+        h:"+1消去。",
+        a:"a_n=2^n-1"
+    })},
+    { f:"数II:微積", d:"東大レベル", gen:()=>({
+        q:"y=x^3-6x\\text{ の接線で傾き3をもつものを求めよ。}",
+        h:"y'=3x^2-6",
+        a:"x=\\pm\\sqrt{3}"
+    })},
+    { f:"面積", d:"旧帝大", gen:()=>({
+        q:"y=x^2\\text{ と }y=x\\text{ で囲まれる面積。}",
+        h:"交点。",
+        a:"\\dfrac{1}{6}"
+    })},
+    { f:"数列", d:"東大レベル", gen:()=>({
+        q:"a_{n+2}-5a_{n+1}+6a_n=0\\text{ の一般解。}",
+        h:"特性方程式。",
+        a:"a_n=A\\cdot2^n+B\\cdot3^n"
+    })},
+    { f:"積分", d:"東工大", gen:()=>({
+        q:"\\displaystyle\\int_0^1 x(x-1)^2\\,dx",
+        h:"展開。",
+        a:"\\dfrac{1}{12}"
+    })},
+    { f:"積分", d:"旧帝大", gen:()=>({
+        q:"\\displaystyle\\int_0^1(x^2+1)^2\\,dx",
+        h:"展開。",
+        a:"\\dfrac{28}{15}"
+    })},
+    { f:"三角関数", d:"京大レベル", gen:()=>({
+        q:"\\sin x+\\cos x=1 \\quad (0\\le x<2\\pi)",
+        h:"2乗。",
+        a:"x=0,\\dfrac{\\pi}{2}"
+    })},
+    { f:"三角関数", d:"東大レベル", gen:()=>({
+        q:"\\sin 2x=\\cos x \\quad (0\\le x<2\\pi)",
+        h:"2\\sin x\\cos x=\\cos x",
+        a:"x=\\dfrac{\\pi}{2},\\dfrac{3\\pi}{2},\\dfrac{\\pi}{6},\\dfrac{5\\pi}{6}"
+    })},
+    { f:"指数対数", d:"旧帝大", gen:()=>({
+        q:"3^x+3^{-x}=\\dfrac{10}{3}",
+        h:"t=3^x",
+        a:"x=1,\\ x=-1"
+    })},
+    { f:"数B:数列", d:"医学部", gen:()=>({
+        q:"\\displaystyle\\sum_{k=1}^{n}k^2",
+        h:"公式。",
+        a:"\\dfrac{n(n+1)(2n+1)}{6}"
+    })},
+    { f:"不等式", d:"京大レベル", gen:()=>({
+        q:"a^2+b^2+c^2\\ge ab+bc+ca\\text{ を示せ。}",
+        h:"移項。",
+        a:"\\dfrac{1}{2}[(a-b)^2+(b-c)^2+(c-a)^2]\\ge0"
+    })},
+    { f:"2変数", d:"旧帝大", gen:()=>({
+        q:"x+y=4\\text{ のとき }x^2+y^2\\text{ の最小値を求めよ。}",
+        h:"平方完成または相加相乗。",
+        a:"x=y=2\\text{ のとき最小値}8"
+    })},
+    { f:"2変数", d:"医学部", gen:()=>({
+        q:"x>0,y>0,xy=1\\text{ のとき }x^2+y^2\\text{ の最小値を求めよ。}",
+        h:"相加相乗平均。",
+        a:"2"
+    })},
+    { f:"存在条件", d:"東大レベル", gen:()=>({
+        q:"x^2-2ax+a+1=0\\text{ が }0<x<2\\text{ に実数解をもつ条件。}",
+        h:"軸・端点。",
+        a:"0<a<3"
+    })},
+    { f:"図形", d:"旧帝大", gen:()=>({
+        q:"x^2+y^2-2x+4y-4=0\\text{ の中心と半径。}",
+        h:"平方完成。",
+        a:"\\text{中心}(1,-2),\\ \\text{半径}3"
+    })},
+    { f:"ベクトル", d:"東大レベル", gen:()=>({
+        q:"|\\vec{a}|=2,|\\vec{b}|=3,\\vec{a}\\cdot\\vec{b}=4\\text{ のとき }|2\\vec{a}-\\vec{b}|。",
+        h:"2乗。",
+        a:"2"
+    })},
+    { f:"複素数", d:"旧帝大", gen:()=>({
+        q:"z=1+i\\text{ のとき }|z|\\text{ を求めよ。}",
+        h:"絶対値。",
+        a:"\\sqrt{2}"
+    })},
+    { f:"複素数", d:"1対1対応", gen:()=>({
+        q:"i^{2025}\\text{ を求めよ。}",
+        h:"周期4。",
+        a:"i"
+    })},
+    { f:"加法定理", d:"難関大", gen:()=>({
+        q:"\\cos 75^\\circ\\text{ を求めよ。}",
+        h:"加法定理。",
+        a:"\\dfrac{\\sqrt{6}-\\sqrt{2}}{4}"
+    })},
+    { f:"二次方程式", d:"1対1対応", gen:()=>({
+        q:"2つの方程式 x^2+x+k=0,\\ 2x^2+kx+4=0 \\text{ が共通の実数解をもつように } k \\text{ の値と共通解を求めよ。}",
+        h:"共通解を \\alpha \\text{ とおき、両式を連立して } x^2 \\text{ を消去する。}",
+        a:"k=2,\\ 共通解 x=-2"
+    })},
+    { f:"二次方程式", d:"難関国立", gen:()=>({
+        q:"x^2-(a+2)x+2a=0,\\ x^2-ax+a+2=0 \\text{ が共通解をもつような } a \\text{ を求めよ。}",
+        h:"2式を引いて x を求める。",
+        a:"a=2,\\ 共通解 x=2"
+    })},
+    { f:"二次方程式", d:"旧帝大", gen:()=>({
+        q:"x^2+ax+1=0,\\ x^2+x+a=0 \\text{ が共通の実数解をもつとき } a \\text{ を求めよ。}",
+        h:"差を取る。",
+        a:"a=1"
+    })},
+    { f:"二次関数", d:"医学部", gen:()=>({
+        q:"x^2+2ax+a+3=0 \\text{ と } x^2+3x+a=0 \\text{ が共通解をもつような } a \\text{ を求めよ。}",
+        h:"共通解を消去。",
+        a:"a=1,-3"
+    })},
+    { f:"高次方程式", d:"旧帝大", gen:()=>({
+        q:"x^3-3x+k=0 \\text{ が重解をもつような } k \\text{ を求めよ。}",
+        h:"f(x)=0 と f'(x)=0 を連立。",
+        a:"k=\\pm2"
+    })},
+    { f:"高次方程式", d:"東大", gen:()=>({
+        q:"x^3-3ax+2=0 \\text{ が異なる3実根をもつような } a \\text{ の範囲を求めよ。}",
+        h:"極大値と極小値。",
+        a:"a>1"
+    })},
+    { f:"二次関数", d:"1対1対応", gen:()=>({
+        q:"方程式 x^2-2ax+a+2=0 \\text{ が } 0<x<2 \\text{ に異なる2実根をもつような } a \\text{ の範囲。}",
+        h:"軸・判別式・端点。",
+        a:"\\frac12<a<2"
+    })},
+    { f:"二次関数", d:"難関国立", gen:()=>({
+        q:"x^2-2(a+1)x+a^2+a-2=0 \\text{ の2解がともに正となるような } a \\text{ の範囲。}",
+        h:"解と係数。",
+        a:"a>1"
+    })},
+    { f:"判別式", d:"旧帝大", gen:()=>({
+        q:"方程式 x^2-2ax+2a+1=0 \\text{ が異なる2実根をもつような } a \\text{ の範囲。}",
+        h:"D>0",
+        a:"a<-1+\\sqrt2 \\text{ または } a>-1-\\sqrt2"
+    })},
+    { f:"対称式", d:"難関大", gen:()=>({
+        q:"x+y=4,\\ xy=1 \\text{ のとき } x^3+y^3 \\text{ を求めよ。}",
+        h:"公式 x^3+y^3=(x+y)^3-3xy(x+y)",
+        a:"52"
+    })},
+    { f:"対称式", d:"旧帝大", gen:()=>({
+        q:"x+y+z=0,\\ x^2+y^2+z^2=6 \\text{ のとき } xy+yz+zx \\text{ を求めよ。}",
+        h:"(x+y+z)^2",
+        a:"-3"
+    })},
+    { f:"不等式", d:"医学部", gen:()=>({
+        q:"x>0,y>0 \\text{ のとき } \\frac{x+y}{2}\\ge\\sqrt{xy} \\text{ を示せ。}",
+        h:"平方完成。",
+        a:"(\\sqrt x-\\sqrt y)^2\\ge0"
+    })},
+    { f:"整数", d:"数オリ風", gen:()=>({
+        q:"n^2+n+1 \\text{ が偶数にならないことを示せ。}",
+        h:"偶奇。",
+        a:"常に奇数"
+    })},
+    { f:"整数", d:"旧帝大", gen:()=>({
+        q:"奇数の平方は 8 で割ると 1 余ることを示せ。",
+        h:"2k+1 とおく。",
+        a:"(2k+1)^2=4k(k+1)+1"
+    })},
+    { f:"数列", d:"1対1対応", gen:()=>({
+        q:"a_1=1,\\ a_{n+1}=2a_n+3 \\text{ の一般項を求めよ。}",
+        h:"定数項を消去。",
+        a:"a_n=2^{n+1}-3"
+    })},
+    { f:"数列", d:"旧帝大", gen:()=>({
+        q:"a_1=1,\\ a_{n+1}=3a_n+2^n \\text{ の一般項を求めよ。}",
+        h:"特解型。",
+        a:"a_n=2\\cdot3^{n-1}-2^{n-1}"
+    })},
+    { f:"漸化式", d:"東大", gen:()=>({
+        q:"a_{n+2}-5a_{n+1}+6a_n=0 \\text{ の一般項を求めよ。}",
+        h:"特性方程式。",
+        a:"a_n=A2^n+B3^n"
+    })},
+    { f:"微積分", d:"医学部", gen:()=>({
+        q:"f(x)=x^3-3x^2+1 \\text{ の極値を求めよ。}",
+        h:"f'(x)=0",
+        a:"極大値1,\\ 極小値-3"
+    })},
+    { f:"微積分", d:"旧帝大", gen:()=>({
+        q:"f(x)=x^4-4x^2+3 \\text{ の最小値を求めよ。}",
+        h:"t=x^2",
+        a:"-1"
+    })},
+    { f:"積分", d:"東大", gen:()=>({
+        q:"\\int_0^1 x(x+1)(x+2)dx",
+        h:"展開。",
+        a:"\\frac94"
+    })},
+    { f:"微積融合", d:"私立医最上位", gen:()=>({
+        q:"f(x)=\\int_0^x (t-a)(t-b)dt \\text{ が } x=\\frac12 \\text{ で極値をとり, } f(a)-f(b)=\\frac16 \\text{ を満たす。}\\n(1) a+b \\text{ を求めよ。}\\n(2) f(x) \\text{ を求めよ。}",
+        h:"f'(x)=(x-a)(x-b) を用いて a+b=1 を出す。さらに条件から ab を決定。",
+        a:"a+b=1,\\ f(x)=\\frac13x^3-\\frac12x^2-\\frac14x"
+    })},
+    { f:"積分・面積", d:"旧帝大", gen:()=>({
+        q:"f(x)=\\int_0^x (t^2-at+a)dt \\text{ が } x=1 \\text{ で極小値をとるように } a \\text{ を定め, 極値を求めよ。}",
+        h:"f'(x)=x^2-ax+a",
+        a:"a=2"
+    })},
+    { f:"三次関数", d:"医学部", gen:()=>({
+        q:"f(x)=x^3-3ax+b \\text{ が異なる2つの極値をもち, その差が16であるとき } a \\text{ を求めよ。}",
+        h:"極値は x=\\pm\\sqrt a",
+        a:"a=4"
+    })},
+    { f:"積分融合", d:"東大レベル", gen:()=>({
+        q:"f(x)=\\int_0^x (t^2-2at+2a)dt \\text{ が } x=1 \\text{ で極値をとるとき } a \\text{ を求めよ。さらに } f(x) \\text{ の最大値を求めよ。}",
+        h:"f'(1)=0",
+        a:"a=1"
+    })},
+    { f:"微積融合", d:"京大レベル", gen:()=>({
+        q:"f(x)=x^3-3x+a \\text{ が x 軸と異なる3点で交わるような } a \\text{ の範囲を求めよ。}",
+        h:"極大値>0,極小値<0",
+        a:"-2<a<2"
+    })},
+    { f:"積分・接線", d:"旧帝大", gen:()=>({
+        q:"曲線 y=x^3-3x^2+2x \\text{ の原点における接線を求め, 曲線と接線で囲まれる面積を求めよ。}",
+        h:"接線は y=f'(0)x",
+        a:"接線 y=2x, 面積=\\frac14"
+    })},
+    { f:"微分法", d:"私立医", gen:()=>({
+        q:"f(x)=x^4-4x^3+4x^2 \\text{ の増減を調べ, 極値を求めよ。}",
+        h:"f'(x)=4x(x-1)(x-2)",
+        a:"極大値1,極小値0"
+    })},
+    { f:"積分", d:"東工大", gen:()=>({
+        q:"\\int_0^1 x(x-1)(x-2)dx",
+        h:"展開。",
+        a:"\\frac14"
+    })},
+    { f:"積分融合", d:"医学部", gen:()=>({
+        q:"f(x)=\\int_1^x (t-a)^2dt \\text{ が x=2 で極値をとるように } a \\text{ を定めよ。}",
+        h:"f'(2)=0",
+        a:"a=2"
+    })},
+    { f:"関数解析", d:"東大", gen:()=>({
+        q:"f(x)=x^3-3x+a \\text{ と } g(x)=x+1 \\text{ が異なる3点で共有点をもつような } a \\text{ の範囲。}",
+        h:"差をとって三次方程式。",
+        a:"-1<a<3"
+    })},
+    { f:"積分・図形", d:"京大", gen:()=>({
+        q:"y=x^3-3x \\text{ と } x \\text{ 軸で囲まれる部分の面積を求めよ。}",
+        h:"交点。",
+        a:"\\frac92"
+    })},
+    { f:"媒介変数", d:"旧帝大", gen:()=>({
+        q:"x=t^2-1,\\ y=t^3-3t \\text{ に対し dy/dx を求めよ。}",
+        h:"媒介変数微分。",
+        a:"\\frac{3t^2-3}{2t}"
+    })},
+    { f:"極限", d:"医学部", gen:()=>({
+        q:"\\lim_{x\\to0}\\frac{\\sin x-x}{x^3}",
+        h:"テイラー展開。",
+        a:"-\\frac16"
+    })},
+    { f:"数列極限", d:"東大", gen:()=>({
+        q:"a_n=\\left(1+\\frac1n\\right)^n \\text{ の極限を求めよ。}",
+        h:"自然対数。",
+        a:"e"
+    })},
+    { f:"複合関数", d:"難関国立", gen:()=>({
+        q:"f(x)=x^2+1,\\ g(x)=2x-3 \\text{ のとき } f(g(x)) を求めよ。}",
+        h:"代入。",
+        a:"4x^2-12x+10"
+    })},
+    { f:"対数微分", d:"旧帝大", gen:()=>({
+        q:"y=x^x \\text{ を微分せよ。}",
+        h:"\\log を取る。",
+        a:"y'=x^x(\\log x+1)"
+    })},
+    { f:"面積", d:"医学部", gen:()=>({
+        q:"y=x^2,\\ y=2x \\text{ に囲まれる部分の面積を求めよ。}",
+        h:"交点。",
+        a:"\\frac43"
+    })},
+    { f:"不等式証明", d:"東大", gen:()=>({
+        q:"a,b,c>0 \\text{ のとき } (a+b+c)^2\\ge3(ab+bc+ca) \\text{ を示せ。}",
+        h:"平方和。",
+        a:"\\frac12[(a-b)^2+(b-c)^2+(c-a)^2]\\ge0"
+    })},
+    { f:"整数融合", d:"数オリ風", gen:()=>({
+        q:"n^5-n \\text{ が30の倍数であることを示せ。}",
+        h:"5,3,2 の倍数性。",
+        a:"常に30の倍数"
+    })},
+    { f:"軌跡", d:"旧帝大", gen:()=>({
+        q:"点P(a\\cos t,b\\sin t) \\text{ の軌跡を求めよ。}",
+        h:"\\cos^2t+\\sin^2t=1",
+        a:"\\frac{x^2}{a^2}+\\frac{y^2}{b^2}=1"
+    })},
+    { f:"数列", d:"青チャート+", gen:()=>({
+        q:"3つの数 a,a+6,2a+17 \\text{ がこの順に等比数列となるような } a \\text{ を求めよ。}",
+        h:"等比数列では中央の2乗=両端の積。",
+        a:"a=1,25"
+    })},
+    { f:"数列", d:"1対1対応", gen:()=>({
+        q:"3つの数 a-1,a+2,2a+5 \\text{ が等差数列となるような } a \\text{ を求めよ。}",
+        h:"真ん中×2。",
+        a:"a=0"
+    })},
+    { f:"数列", d:"難関国立", gen:()=>({
+        q:"3つの数 a,a+2,3a+6 \\text{ がこの順に等比数列となるような } a \\text{ を求めよ。}",
+        h:"(a+2)^2=a(3a+6)",
+        a:"a=2,-\\frac23"
+    })},
+    { f:"数列", d:"旧帝大", gen:()=>({
+        q:"4つの数 1,a,b,27 \\text{ がこの順に等比数列となるとき } a,b \\text{ を求めよ。}",
+        h:"公比を r。",
+        a:"a=3,b=9"
+    })},
+    { f:"数列", d:"医学部", gen:()=>({
+        q:"3数 a+1,2a-1,3a+5 \\text{ が等比数列をなすとき } a \\text{ を求めよ。}",
+        h:"中央の2乗。",
+        a:"a=2,-1"
+    })},
+    { f:"数列", d:"旧帝大", gen:()=>({
+        q:"正の数 a,b,c \\text{ が等比数列で } a+b+c=21,ab+bc+ca=111 \\text{ のとき } b \\text{ を求めよ。}",
+        h:"a=\\frac br,c=br",
+        a:"b=3"
+    })},
+    { f:"数列", d:"東大", gen:()=>({
+        q:"3数 a,b,c \\text{ が等比数列で } a+b+c=13,abc=27 \\text{ のとき } b \\text{ を求めよ。}",
+        h:"等比数列では b^3=abc。",
+        a:"b=3"
+    })},
+    { f:"数列", d:"難関大", gen:()=>({
+        q:"3つの数 a+1,2a+3,5a+1 \\text{ が等差数列となる } a \\text{ を求めよ。}",
+        h:"2(2a+3)=(a+1)+(5a+1)",
+        a:"a=2"
+    })}
+];
+
+let currentIdx = 0;
+let stats = { total: 0, hard: 0, streak: 0 };
+
+function getDifficultyBadge(d) {
+    if (d.includes('医') || d.includes('東大') || d.includes('京大')) return 'hard';
+    if (d.includes('難')) return 'hard';
+    if (d.includes('1対1') || d.includes('旧帝')) return 'mid';
+    return 'field';
+}
+
+function generate() {
+    const loader = document.getElementById('loader');
+    loader.classList.add('active');
+    
+    setTimeout(() => {
+        currentIdx = Math.floor(Math.random() * engines.length);
+        const engine = engines[currentIdx];
+        const problem = engine.gen();
+        
+        document.getElementById('counter').textContent = `Q — ${String(currentIdx + 1).padStart(3, '0')}`;
+        document.getElementById('tags').innerHTML = `
+            <span class="badge badge-field">${engine.f}</span>
+            <span class="badge badge-${getDifficultyBadge(engine.d)}">${engine.d}</span>
+        `;
+        
+        document.getElementById('q-area').innerHTML = problem.q;
+        document.getElementById('hint-body').innerHTML = problem.h;
+        document.getElementById('ans-body').innerHTML = problem.a;
+        
+        document.getElementById('hint').style.display = 'none';
+        document.getElementById('ans').style.display = 'none';
+        
+        renderMath();
+        
+        stats.total++;
+        if (getDifficultyBadge(engines[currentIdx].d) === 'hard') stats.hard++;
+        stats.streak++;
+        updateStats();
+        
+        loader.classList.remove('active');
+    }, 300);
+}
+
+function toggle(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function renderMath() {
+    if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\[', right: '\\]', display: true },
+                { left: '\\(', right: '\\)', display: false }
+            ]
+        });
+    }
+}
+
+function updateStats() {
+    document.getElementById('s-total').textContent = stats.total;
+    document.getElementById('s-hard').textContent = stats.hard;
+    document.getElementById('s-streak').textContent = stats.streak;
+}
+
+// Load first problem on page load
+window.addEventListener('load', () => {
+    generate();
+});
+</script>
+</body>
+</html>
